@@ -38,3 +38,4 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; opacit
 .msg { padding: .8rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; }
 .msg-ok { background: #def5e8; color: #14633f; }
 .msg-err { background: #fde2e2; color: #9b1c1c; }
+.msg-warn { background: #fff6c9; color: #7a6200; }

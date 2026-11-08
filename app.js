@@ -165,14 +165,84 @@ function renderReceive(message) {
   });
 }
 
+function errBox(text) {
+  return '<div class="msg msg-err" role="alert">' + esc(text) + '</div>';
+}
+
+function renderFefo(message) {
+  const options = '<option value="">Choose product</option>' + PRODUCTS.map(p =>
+    '<option value="' + p.id + '">' + esc(p.generic + ' ' + p.strength) + '</option>').join('');
+
+  const stockRows = BATCHES.slice()
+    .sort((a, b) => a.productId.localeCompare(b.productId) || a.expiry.localeCompare(b.expiry))
+    .map(b => {
+      const st = expiryStatus(b.expiry);
+      return '<tr><td>' + esc(productName(b.productId)) + '</td><td>' + esc(b.batchNo) + '</td><td>' +
+        onHand(b.id) + '</td><td>' + esc(b.expiry) + '</td><td>' + badge(st.kind, st.label) +
+        qualityBadge(b.quality) + '</td><td>' + (isAllocatable(b) ? 'Yes' : 'No') + '</td></tr>';
+    }).join('');
+
+  app.innerHTML =
+    '<h2>Stock &amp; FEFO</h2>' + (message || '') + '<div id="msg"></div>' +
+    '<div class="card"><form id="ff" class="form" novalidate>' +
+    '<label>Product<select name="product">' + options + '</select></label>' +
+    '<label>Quantity needed<input name="qty" type="number" min="1" step="1"></label>' +
+    '<label>Order / customer reference<input name="reference" type="text"></label>' +
+    '<button type="submit" class="primary">Suggest FEFO allocation</button></form>' +
+    '<div id="result"></div></div>' +
+    '<div class="card" style="margin-top:1rem"><h3>Stock by batch</h3>' +
+    '<table><thead><tr><th>Product</th><th>Batch</th><th>On hand</th><th>Expiry</th><th>Status</th><th>Can be allocated</th></tr></thead><tbody>' +
+    stockRows + '</tbody></table></div>';
+
+  document.getElementById('ff').addEventListener('submit', e => {
+    e.preventDefault();
+    const f = e.target;
+    const msg = document.getElementById('msg');
+    const result = document.getElementById('result');
+    result.innerHTML = '';
+    msg.innerHTML = '';
+    const qty = Number(f.qty.value);
+    const ref = f.reference.value.trim();
+    if (!f.product.value) { msg.innerHTML = errBox('Choose a product.'); return; }
+    if (!Number.isInteger(qty) || qty <= 0) { msg.innerHTML = errBox('Quantity must be a positive whole number.'); return; }
+    if (!ref) { msg.innerHTML = errBox('Enter an order or customer reference.'); return; }
+
+    const r = fefoAllocate(f.product.value, qty);
+    let html = '';
+    if (r.picks.length) {
+      html += '<h3>Suggested allocation</h3><table><thead><tr><th>Batch</th><th>Expiry</th><th>Take</th></tr></thead><tbody>' +
+        r.picks.map(p => '<tr><td>' + esc(p.batch.batchNo) + '</td><td>' + esc(p.batch.expiry) +
+          '</td><td>' + p.qty + '</td></tr>').join('') + '</tbody></table>';
+    }
+    if (r.shortfall > 0) {
+      html += '<div class="msg msg-warn" role="alert">Not enough eligible stock. Short by ' + r.shortfall +
+        ' units. Expired, quarantined and blocked batches are excluded.</div>';
+    } else {
+      html += '<p><button id="confirm" class="primary">Confirm dispatch</button></p>';
+    }
+    result.innerHTML = html;
+
+    const btn = document.getElementById('confirm');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        try {
+          r.picks.forEach(p => postMovement({ type: 'issue', batchId: p.batch.id, qty: p.qty, reason: 'Dispatch: ' + ref }));
+          renderFefo('<div class="msg msg-ok" role="status">Dispatched ' + qty + ' units. Ledger updated.</div>');
+        } catch (err) {
+          msg.innerHTML = errBox(err.message);
+        }
+      });
+    }
+  });
+}
+
 const VIEWS = {
   dashboard: renderDashboard,
   products: renderProducts,
   batches: renderBatches,
   receive: renderReceive,
-  fefo: renderPlaceholder('Stock & FEFO')
+  fefo: renderFefo
 };
-
 function show(view) {
   document.querySelectorAll('#nav button').forEach(b =>
     b.classList.toggle('active', b.dataset.view === view));
