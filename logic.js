@@ -57,3 +57,25 @@ function postMovement({ type, batchId, qty, reason }) {
     at: new Date().toISOString().slice(0, 10)
   });
 }
+function receiveStock({ productId, batchNo, expiry, qty, reference, quality }) {
+  batchNo = (batchNo || '').trim().toUpperCase();
+  if (!PRODUCTS.find(p => p.id === productId)) throw new Error('Choose a product.');
+  if (!batchNo) throw new Error('Batch number is required.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry || '') || isNaN(new Date(expiry + 'T00:00:00'))) {
+    throw new Error('Enter a valid expiry date.');
+  }
+  if (daysUntil(expiry) < 0) throw new Error('This batch is already expired. Expired stock cannot be received.');
+  if (!Number.isInteger(qty) || qty <= 0) throw new Error('Quantity must be a positive whole number.');
+  if (!reference || !reference.trim()) throw new Error('Enter the supplier or PO reference.');
+
+  let batch = BATCHES.find(b => b.productId === productId && b.batchNo === batchNo);
+  if (batch && batch.expiry !== expiry) {
+    throw new Error('Batch ' + batchNo + ' already exists with expiry ' + batch.expiry + '. Check the expiry date.');
+  }
+  if (!batch) {
+    batch = { id: 'B' + (BATCHES.length + 1), productId, batchNo, expiry, quality: quality || 'released' };
+    BATCHES.push(batch);
+  }
+  postMovement({ type: 'receipt', batchId: batch.id, qty, reason: 'Receipt: ' + reference.trim() });
+  return batch;
+}

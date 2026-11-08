@@ -116,11 +116,60 @@ function renderBatches() {
       .join(''));
 }
 
+function renderReceive(message) {
+  const options = '<option value="">Choose product</option>' + PRODUCTS.map(p =>
+    '<option value="' + p.id + '">' + esc(p.generic + ' ' + p.strength) + '</option>').join('');
+
+  const recent = MOVEMENTS.slice(-8).reverse().map(m => {
+    const b = BATCHES.find(b => b.id === m.batchId);
+    return '<tr><td>' + esc(m.at) + '</td><td>' + esc(m.type) + '</td><td>' +
+      esc(productName(b.productId)) + '</td><td>' + esc(b.batchNo) + '</td><td>' +
+      (DIRECTION[m.type] > 0 ? '+' : '-') + m.qty + '</td><td>' + esc(m.reason) +
+      '</td><td>' + esc(m.actor) + '</td></tr>';
+  }).join('');
+
+  app.innerHTML =
+    '<h2>Receive stock</h2>' + (message || '') + '<div id="msg"></div>' +
+    '<div class="card"><form id="rf" class="form" novalidate>' +
+    '<label>Product<select name="product">' + options + '</select></label>' +
+    '<label>Batch number<input name="batchNo" type="text"></label>' +
+    '<label>Expiry date<input name="expiry" type="date"></label>' +
+    '<label>Quantity received<input name="qty" type="number" min="1" step="1"></label>' +
+    '<label>Supplier / PO reference<input name="reference" type="text"></label>' +
+    '<label>Inspection outcome<select name="quality">' +
+    '<option value="released">Accepted (released)</option>' +
+    '<option value="quarantined">Hold for review (quarantined)</option></select></label>' +
+    '<button type="submit" class="primary">Post receipt</button></form></div>' +
+    '<div class="card" style="margin-top:1rem"><h3>Recent ledger movements</h3>' +
+    '<table><thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Batch</th><th>Qty</th><th>Reason</th><th>By</th></tr></thead><tbody>' +
+    recent + '</tbody></table></div>';
+
+  document.getElementById('rf').addEventListener('submit', e => {
+    e.preventDefault();
+    const f = e.target;
+    try {
+      const b = receiveStock({
+        productId: f.product.value,
+        batchNo: f.batchNo.value,
+        expiry: f.expiry.value,
+        qty: Number(f.qty.value),
+        reference: f.reference.value,
+        quality: f.quality.value
+      });
+      renderReceive('<div class="msg msg-ok" role="status">Received ' + Number(f.qty.value) +
+        ' units into batch ' + esc(b.batchNo) + '. Ledger updated.</div>');
+    } catch (err) {
+      document.getElementById('msg').innerHTML =
+        '<div class="msg msg-err" role="alert">' + esc(err.message) + '</div>';
+    }
+  });
+}
+
 const VIEWS = {
   dashboard: renderDashboard,
   products: renderProducts,
   batches: renderBatches,
-  receive: renderPlaceholder('Receive stock'),
+  receive: renderReceive,
   fefo: renderPlaceholder('Stock & FEFO')
 };
 

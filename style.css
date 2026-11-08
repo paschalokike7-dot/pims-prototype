@@ -31,3 +31,10 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; opacit
 .search { width: 100%; padding: .65rem .8rem; margin-bottom: 1rem; border: 1px solid var(--line); border-radius: 8px; font-size: 1rem; }
 .badge-blocked, .badge-recalled { background: #fde2e2; color: #9b1c1c; }
 [hidden] { display: none !important; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .9rem; align-items: end; }
+.form label { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; font-weight: 600; }
+.form input, .form select { padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 8px; font-size: 1rem; font-weight: 400; }
+.primary { background: var(--green-600); color: #fff; border: 0; border-radius: 8px; padding: .7rem 1rem; font-size: 1rem; cursor: pointer; }
+.msg { padding: .8rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; }
+.msg-ok { background: #def5e8; color: #14633f; }
+.msg-err { background: #fde2e2; color: #9b1c1c; }
