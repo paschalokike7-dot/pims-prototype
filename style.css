@@ -28,3 +28,6 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; opacit
 .badge-quarantined { background: #e5e1f7; color: #3e2f8f; }
 .empty { padding: 1.5rem; text-align: center; opacity: .7; }
 @media (max-width: 600px) { main { padding: 1rem .75rem 2rem; } }
+.search { width: 100%; padding: .65rem .8rem; margin-bottom: 1rem; border: 1px solid var(--line); border-radius: 8px; font-size: 1rem; }
+.badge-blocked, .badge-recalled { background: #fde2e2; color: #9b1c1c; }
+[hidden] { display: none !important; }
