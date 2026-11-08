@@ -253,4 +253,64 @@ document.getElementById('nav').addEventListener('click', e => {
   if (e.target.dataset.view) show(e.target.dataset.view);
 });
 
-show('dashboard');
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function loadFromDatabase() {
+  const [p, b, m] = await Promise.all([
+    db.from('products').select('*').order('sku'),
+    db.from('batches').select('*'),
+    db.from('inventory_movements').select('*').order('occurred_at')
+  ]);
+  for (const r of [p, b, m]) if (r.error) throw r.error;
+  PRODUCTS.length = 0; BATCHES.length = 0; MOVEMENTS.length = 0;
+  p.data.forEach(r => PRODUCTS.push({
+    id: r.id, sku: r.sku, generic: r.generic_name,
+    strength: r.strength || '', form: r.dosage_form || '', status: r.status }));
+  b.data.forEach(r => BATCHES.push({
+    id: r.id, productId: r.product_id, batchNo: r.batch_number,
+    expiry: r.expiry_date, quality: r.quality_status }));
+  m.data.forEach(r => MOVEMENTS.push({
+    id: r.id, type: r.movement_type, batchId: r.batch_id, qty: r.quantity,
+    reason: r.reason, actor: r.actor_id.slice(0, 8), at: r.occurred_at.slice(0, 10) }));
+}
+
+function renderLogin(message) {
+  document.getElementById('nav').hidden = true;
+  document.getElementById('logout').hidden = true;
+  app.innerHTML =
+    '<div class="card login"><h2>Sign in</h2>' + (message || '') +
+    '<form id="lf" class="form" novalidate>' +
+    '<label>Email<input name="email" type="email" autocomplete="username"></label>' +
+    '<label>Password<input name="password" type="password" autocomplete="current-password"></label>' +
+    '<button type="submit" class="primary">Sign in</button></form></div>';
+  document.getElementById('lf').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    const { error } = await db.auth.signInWithPassword({
+      email: f.email.value.trim(), password: f.password.value });
+    if (error) renderLogin(errBox('Sign-in failed: ' + error.message));
+    else boot();
+  });
+}
+
+async function boot() {
+  const { data } = await db.auth.getSession();
+  if (!data.session) { renderLogin(); return; }
+  app.innerHTML = '<div class="card empty">Loading...</div>';
+  try {
+    await loadFromDatabase();
+  } catch (err) {
+    app.innerHTML = errBox('Could not load data: ' + err.message);
+    return;
+  }
+  document.getElementById('nav').hidden = false;
+  document.getElementById('logout').hidden = false;
+  show('dashboard');
+}
+
+document.getElementById('logout').addEventListener('click', async () => {
+  await db.auth.signOut();
+  renderLogin();
+});
+
+boot();

@@ -8,16 +8,20 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">PIMS <span>Prototype &middot; demo data</span></div>
-    <nav id="nav">
+    <div class="brand">PIMS <span>Prototype</span></div>
+    <nav id="nav" hidden>
       <button data-view="dashboard" class="active">Dashboard</button>
       <button data-view="products">Products</button>
       <button data-view="batches">Batches</button>
       <button data-view="receive">Receive</button>
       <button data-view="fefo">Stock &amp; FEFO</button>
     </nav>
+    <button id="logout" hidden>Log out</button>
   </header>
   <main id="app"></main>
+<script>window.onerror = function (m, s, l) { document.body.insertAdjacentHTML('afterbegin', '<pre style="color:#b00;background:#fff;padding:1rem;white-space:pre-wrap">ERROR: ' + m + ' (' + String(s || '').split('/').pop() + ':' + l + ')</pre>'); };</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
   <script src="data.js"></script>
   <script src="logic.js"></script>
   <script src="app.js"></script>

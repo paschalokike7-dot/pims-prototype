@@ -39,3 +39,5 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; opacit
 .msg-ok { background: #def5e8; color: #14633f; }
 .msg-err { background: #fde2e2; color: #9b1c1c; }
 .msg-warn { background: #fff6c9; color: #7a6200; }
+#logout { margin-left: auto; background: none; border: 1px solid #6fe0a8; color: #cfe7db; border-radius: 8px; padding: .4rem .8rem; cursor: pointer; }
+.login { max-width: 420px; margin: 2rem auto; }
