@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PIMS test</title>
+<pre id="out"></pre>
+<script src="data.js"></script>
+<script src="logic.js"></script>
+<script>
+  const r = fefoAllocate('P1', 100);
+  document.getElementById('out').textContent =
+    r.picks.map(p => p.batch.batchNo + ': ' + p.qty).join('\n') +
+    '\nshortfall: ' + r.shortfall;
+</script>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIMS | Pharmaceutical Inventory Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">PIMS <span>Prototype &middot; demo data</span></div>
+    <nav id="nav">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="products">Products</button>
+      <button data-view="batches">Batches</button>
+      <button data-view="receive">Receive</button>
+      <button data-view="fefo">Stock &amp; FEFO</button>
+    </nav>
+  </header>
+  <main id="app"></main>
+  <script src="data.js"></script>
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
